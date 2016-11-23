@@ -118,7 +118,14 @@ module RTSP
       @connection.server_url = server_url || @connection.server_url
       @server_uri            = build_resource_uri_from(@connection.server_url)
       @connection.timeout    ||= 30
-      @connection.socket     ||= TCPSocket.new(@server_uri.host, @server_uri.port)
+
+      begin
+        @connection.socket     ||= TCPSocket.new(@server_uri.host, @server_uri.port)
+      rescue
+        @capturer.capture_file.close!
+        raise
+      end
+
       @connection.do_capture ||= true
       @connection.interleave ||= false
 
