@@ -61,7 +61,7 @@ module RTSP
 
     # @return [URI] The URI that points to the RTSP server's resource.
     attr_reader :server_uri
-    
+
     # @return [Fixnum] Also known as the "sequence" number, this starts at 1 and
     #   increments after every request to the server.  It is reset after
     #   calling #teardown.
@@ -124,6 +124,8 @@ module RTSP
       rescue
         @capturer.capture_file.close!
         raise
+      ensure
+        @capturer.capture_file.close!
       end
 
       @connection.do_capture ||= true
@@ -156,7 +158,7 @@ module RTSP
     def server_password=(password)
       @server_uri.password = password
     end
-    
+
     # Sends the message over the socket.
     #
     # @param [RTSP::Message] message
@@ -279,7 +281,7 @@ module RTSP
         #pass up raw transport for debug and/or logging
         yield response.transport if block_given?
         @transport = parser.parse(response.transport)
-          
+
         unless @transport[:transport_protocol].nil?
           @capturer.transport_protocol = @transport[:transport_protocol]
         end
@@ -472,7 +474,7 @@ module RTSP
     end
 
     private
-    
+
     # Resends a message with an Authorization header when possible
     # @param [RTSP:Message] message The message that must be repeated with Authorization
     def get_authorization(message, err401=nil)
@@ -503,7 +505,7 @@ module RTSP
                        :nonce => auth_opt[:nonce], :uri => message.request_uri.to_s,
                        :response => res }
           headers = { :authorization => "Digest "+auth_res.map{|k,v| "#{k}=\"#{v}\""}.join(", ") }
-        else 
+        else
           exit
         end
         new_message = RTSP::Message.send(message.method_type.to_sym,@server_uri.to_s).with_headers(message.headers).with_headers(headers)
@@ -511,7 +513,7 @@ module RTSP
       end
       nil
     end
-    
+
     # Sets state related variables back to their starting values;
     # +@session_state+ is set to +:init+; +@session+ is set to 0.
     def reset_state
